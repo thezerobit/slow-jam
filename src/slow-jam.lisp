@@ -5,7 +5,13 @@
 
 (in-package :cl-user)
 (defpackage slow-jam
-  (:use :cl))
+  (:use :cl)
+  (:export :lcons
+           :empty?
+           :head
+           :tail
+           :to-list
+           :lmapcar))
 (in-package :slow-jam)
 
 (defclass lcons ()
@@ -14,7 +20,7 @@
    (head)
    (tail-thunk :initarg :tail-thunk)
    (tail-forced :initform nil)
-   (tail)) 
+   (tail))
 
 (defmacro lcons (head tail)
   `(make-instance 'lcons
@@ -39,7 +45,7 @@
       (setf (slot-value lcons 'head) (funcall (slot-value lcons 'head-thunk))))))
 
 (defmethod head ((lcons list))
-  (car lcons))
+  (car cons))
 
 (defmethod tail ((lcons lcons))
   (if (slot-value lcons 'tail-forced)
