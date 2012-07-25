@@ -15,7 +15,8 @@
            :range
            :take
            :drop
-           :filter))
+           :filter
+           :|ETC...|))
 (in-package :slow-jam)
 
 (defclass lcons ()
@@ -71,13 +72,21 @@
           (inner 0 a 1)
           (infinite 0))))))
 
-(defun to-list (lcons)
-  (let ((newlist '()))
-    (loop while (not (null lcons))
+(defun to-list (lcons &key max)
+  (let ((newlist '())
+        (items-added 0))
+    (loop while (and (not (null lcons))
+                     (not (and max (>= items-added max))))
           do (progn
+               (incf items-added)
                (push (head lcons) newlist)
                (setq lcons (tail lcons))))
-    (reverse newlist)))
+    (values (reverse newlist) (not (empty? lcons)))))
+
+(defmethod print-object ((object lcons) stream)
+  (multiple-value-bind (list more) (to-list object :max 20)
+    (if more (setq list (append list (list '|ETC...|))))
+    (print-object list stream)))
 
 (defun lmapcar (f &rest lists)
   (if (notany #'empty? lists)

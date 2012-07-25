@@ -10,7 +10,7 @@
         :cl-test-more))
 (in-package :slow-jam-test)
 
-(plan 7)
+(plan 8)
 
 (is (to-list (lcons 1 nil)) (list 1))
 
@@ -31,5 +31,8 @@
 
 (is (to-list (filter #'evenp (range 10)))
     (to-list (range 0 10 2)))
+
+(is (to-list (filter #'oddp (range 0 10 2)))
+    nil)
 
 (finalize)
