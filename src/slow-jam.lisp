@@ -20,7 +20,7 @@
    (head)
    (tail-thunk :initarg :tail-thunk)
    (tail-forced :initform nil)
-   (tail))
+   (tail)))
 
 (defmacro lcons (head tail)
   `(make-instance 'lcons
@@ -35,7 +35,7 @@
   nil)
 
 (defmethod empty? ((lcons list))
-  (null list))
+  (null lcons))
 
 (defmethod head ((lcons lcons))
   (if (slot-value lcons 'head-forced)
@@ -45,7 +45,7 @@
       (setf (slot-value lcons 'head) (funcall (slot-value lcons 'head-thunk))))))
 
 (defmethod head ((lcons list))
-  (car cons))
+  (car lcons))
 
 (defmethod tail ((lcons lcons))
   (if (slot-value lcons 'tail-forced)
