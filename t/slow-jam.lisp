@@ -10,8 +10,26 @@
         :cl-test-more))
 (in-package :slow-jam-test)
 
-(plan 1)
+(plan 7)
 
 (is (to-list (lcons 1 nil)) (list 1))
+
+(is (to-list (lmapcar #'* (list 2 3 4 5) (list 4 5 6 7)))
+    (list 8 15 24 35))
+
+(is (to-list (lmapcar #'+ (range) (list 1 2 3)))
+    (list 1 3 5))
+
+(is (to-list (lmapcar #'+ (list 1 2 3) (range)))
+    (list 1 3 5))
+
+(is (to-list (take 10 (range)))
+    (to-list (range 10)))
+
+(is (to-list (drop 5 (take 10 (range))))
+    (to-list (range 5 10)))
+
+(is (to-list (filter #'evenp (range 10)))
+    (to-list (range 0 10 2)))
 
 (finalize)

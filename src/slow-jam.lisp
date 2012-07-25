@@ -11,15 +11,17 @@
            :head
            :tail
            :to-list
-           :lmapcar))
+           :lmapcar
+           :range
+           :take
+           :drop
+           :filter))
 (in-package :slow-jam)
 
 (defclass lcons ()
   ((head-thunk :initarg :head-thunk)
-   (head-forced :initform nil)
    (head)
    (tail-thunk :initarg :tail-thunk)
-   (tail-forced :initform nil)
    (tail)))
 
 (defmacro lcons (head tail)
@@ -38,30 +40,36 @@
   (null lcons))
 
 (defmethod head ((lcons lcons))
-  (if (slot-value lcons 'head-forced)
+  (if (slot-boundp lcons 'head)
     (slot-value lcons 'head)
-    (progn
-      (setf (slot-value lcons 'head-forced) T)
-      (setf (slot-value lcons 'head) (funcall (slot-value lcons 'head-thunk))))))
+    (setf (slot-value lcons 'head) (funcall (slot-value lcons 'head-thunk)))))
 
 (defmethod head ((lcons list))
   (car lcons))
 
 (defmethod tail ((lcons lcons))
-  (if (slot-value lcons 'tail-forced)
+  (if (slot-boundp lcons 'tail)
     (slot-value lcons 'tail)
-    (progn
-      (setf (slot-value lcons 'tail-forced) T)
-      (setf (slot-value lcons 'tail) (funcall (slot-value lcons 'tail-thunk))))))
+    (setf (slot-value lcons 'tail) (funcall (slot-value lcons 'tail-thunk)))))
 
 (defmethod tail ((lcons list))
   (cdr lcons))
 
-(defun make-range (n)
-  (labels ((inner (c) (if (< c n)
-                        (lcons c (inner (1+ c)))
-                        nil)))
-    (inner 0)))
+(defun range (&optional a b c)
+  (labels ((inner (start end step)
+             (if (or
+                   (and (> step 0) (< start end))
+                   (and (< step 0) (> start end)))
+               (lcons start (inner (+ start step) end step))))
+           (infinite (n)
+             (lcons n (infinite (1+ n)))))
+    (if c
+      (inner a b c)
+      (if b
+        (inner a b 1)
+        (if a
+          (inner 0 a 1)
+          (infinite 0))))))
 
 (defun to-list (lcons)
   (let ((newlist '()))
@@ -73,11 +81,8 @@
 
 (defun lmapcar (f &rest lists)
   (if (notany #'empty? lists)
-    (let ((heads (mapcar #'head lists))
-          (tails (mapcar #'tail lists)))
-      (lcons (apply f heads)
-             (apply #'lmapcar f tails)))
-    nil))
+    (lcons (apply f (mapcar #'head lists))
+           (apply #'lmapcar f (mapcar #'tail lists)))))
 
 (defun last-val (lcons)
   (let ((head (head lcons))
@@ -86,11 +91,18 @@
       (last-val tail)
       head)))
 
-(defun take (lcons n)
-  (if (> n 0)
-    (lcons (head lcons) (take (tail lcons) (1- n)))))
+(defun take (n lcons)
+  (if (and (> n 0) (not (empty? lcons)))
+    (lcons (head lcons) (take (1- n) (tail lcons)))))
 
-(defun drop (lcons n)
+(defun drop (n lcons)
   (if (> n 0)
-    (drop (tail lcons) (1- n))
+    (drop (1- n) (tail lcons))
     lcons))
+
+(defun filter (p lcons)
+  (if (not (empty? lcons))
+    (let ((val (head lcons)))
+      (if (funcall p val)
+        (lcons val (filter p (tail lcons)))
+        (filter p (tail lcons))))))
