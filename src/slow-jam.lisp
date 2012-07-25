@@ -85,3 +85,12 @@
     (if tail
       (last-val tail)
       head)))
+
+(defun take (lcons n)
+  (if (> n 0)
+    (lcons (head lcons) (take (tail lcons) (1- n)))))
+
+(defun drop (lcons n)
+  (if (> n 0)
+    (drop (tail lcons) (1- n))
+    lcons))

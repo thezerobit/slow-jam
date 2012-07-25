@@ -10,8 +10,8 @@
         :cl-test-more))
 (in-package :slow-jam-test)
 
-(plan nil)
+(plan 1)
 
-;; blah blah blah.
+(is (to-list (lcons 1 nil)) (list 1))
 
 (finalize)
