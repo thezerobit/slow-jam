@@ -20,12 +20,11 @@
 (in-package :slow-jam)
 
 (defclass lcons ()
-  ((thunk :initarg :thunk)
-   (val)))
+  ((val :initarg :val)))
 
 (defmacro lcons (head tail)
   `(make-instance 'lcons
-                  :thunk (lambda () (cons ,head ,tail))))
+                  :val (lambda () (cons ,head ,tail))))
 
 (defgeneric empty? (lcons))
 (defgeneric head (lcons))
@@ -38,16 +37,16 @@
   (null lcons))
 
 (defmethod head ((lcons lcons))
-  (when (not (slot-boundp lcons 'val))
-    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'thunk))))
+  (when (functionp (slot-value lcons 'val))
+    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'val))))
   (car (slot-value lcons 'val)))
 
 (defmethod head ((lcons list))
   (car lcons))
 
 (defmethod tail ((lcons lcons))
-  (when (not (slot-boundp lcons 'val))
-    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'thunk))))
+  (when (functionp (slot-value lcons 'val))
+    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'val))))
   (cdr (slot-value lcons 'val)))
 
 (defmethod tail ((lcons list))
@@ -91,11 +90,9 @@
            (apply #'lmapcar f (mapcar #'tail lists)))))
 
 (defun last-val (lcons)
-  (let ((head (head lcons))
-        (tail (tail lcons)))
-    (if tail
-      (last-val tail)
-      head)))
+  (if (tail lcons)
+    (last-val (tail lcons))
+    (head lcons)))
 
 (defun take (n lcons)
   (if (and (> n 0) (not (empty? lcons)))
