@@ -20,15 +20,12 @@
 (in-package :slow-jam)
 
 (defclass lcons ()
-  ((head-thunk :initarg :head-thunk)
-   (head)
-   (tail-thunk :initarg :tail-thunk)
-   (tail)))
+  ((thunk :initarg :thunk)
+   (val)))
 
 (defmacro lcons (head tail)
   `(make-instance 'lcons
-                  :head-thunk (lambda () ,head)
-                  :tail-thunk (lambda () ,tail)))
+                  :thunk (lambda () (cons ,head ,tail))))
 
 (defgeneric empty? (lcons))
 (defgeneric head (lcons))
@@ -41,17 +38,17 @@
   (null lcons))
 
 (defmethod head ((lcons lcons))
-  (if (slot-boundp lcons 'head)
-    (slot-value lcons 'head)
-    (setf (slot-value lcons 'head) (funcall (slot-value lcons 'head-thunk)))))
+  (when (not (slot-boundp lcons 'val))
+    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'thunk))))
+  (car (slot-value lcons 'val)))
 
 (defmethod head ((lcons list))
   (car lcons))
 
 (defmethod tail ((lcons lcons))
-  (if (slot-boundp lcons 'tail)
-    (slot-value lcons 'tail)
-    (setf (slot-value lcons 'tail) (funcall (slot-value lcons 'tail-thunk)))))
+  (when (not (slot-boundp lcons 'val))
+    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'thunk))))
+  (cdr (slot-value lcons 'val)))
 
 (defmethod tail ((lcons list))
   (cdr lcons))
