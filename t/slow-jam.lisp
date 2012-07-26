@@ -10,7 +10,7 @@
         :cl-test-more))
 (in-package :slow-jam-test)
 
-(plan 8)
+(plan 9)
 
 (is (to-list (lcons 1 nil)) (list 1))
 
@@ -34,5 +34,8 @@
 
 (is (to-list (filter #'oddp (range 0 10 2)))
     nil)
+
+(is (to-list (drop 5 (take 20 (range))))
+    '(5 6 7 8 9 10 11 12 13 14 15 16 17 18 19))
 
 (finalize)
