@@ -24,7 +24,7 @@
 
 (defmacro lcons (head tail)
   `(make-instance 'lcons
-                  :val (lambda () (cons ,head ,tail))))
+                  :val (cons ,head (lambda () ,tail))))
 
 (defgeneric empty? (lcons))
 (defgeneric head (lcons))
@@ -37,17 +37,13 @@
   (null lcons))
 
 (defmethod head ((lcons lcons))
-  (when (functionp (slot-value lcons 'val))
-    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'val))))
   (car (slot-value lcons 'val)))
 
 (defmethod head ((lcons list))
   (car lcons))
 
 (defmethod tail ((lcons lcons))
-  (when (functionp (slot-value lcons 'val))
-    (setf (slot-value lcons 'val) (funcall (slot-value lcons 'val))))
-  (cdr (slot-value lcons 'val)))
+  (funcall (cdr (slot-value lcons 'val))))
 
 (defmethod tail ((lcons list))
   (cdr lcons))
@@ -109,3 +105,12 @@
       (if (funcall p val)
         (lcons val (filter p (tail lcons)))
         (filter p (tail lcons))))))
+
+(defun lreduce (f lcons)
+  (let ((accumulator (head lcons)))
+    (setq lcons (tail lcons))
+    (loop while (not (empty? lcons))
+          do (progn
+               (setq accumulator (funcall f accumulator (head lcons)))
+               (setq lcons (tail lcons))))
+    accumulator))
